@@ -28,7 +28,8 @@ def plot_info(all_info, show=True):
 
 
     # function to automatically generate all runs I-V for the device
-    auto_plot_IV(all_info)
+    fig = auto_plot_IV(all_info)
+    figures.append(fig)
     
 
     # alternative way to manually plot all runs I-V:
