@@ -21,6 +21,10 @@ def initialize_folders(home_path):
 
 # make the default graph save directory the current device graphs folder
 def set_savedir(folder_path):
+    try:
+        os.makedirs(folder_path + '\\Figures')
+    except FileExistsError:
+        pass
     mpl.rcParams["savefig.directory"] = folder_path + '\\Figures'
 
 # open data file (.pickle) and load it into all_info to use in plotting
