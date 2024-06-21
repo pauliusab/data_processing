@@ -4,20 +4,32 @@ import settings
 import pickle
 
 
-def auto_plot_IV(all_info):
-    # automatically plots IV using all data for the device
+r_col = settings.resistance_collumn
+i_col = settings.I_sweep_column
+v_col = settings.V_sweep_column
 
+
+def auto_plot_IV(all_info):
     resets = list(filter(lambda x: x['type'] == 'reset', all_info))
     electroform = list(filter(lambda x: x['type'] == 'form', all_info))
     sets = list(filter(lambda x: x['type'] == 'set', all_info))
-
-    fig = MyFigure(1, title='I-V')
+    
+    fig = MyFigure(1, title='autoplot')
     ax = fig.axs
-    fig.plot_sweeps(ax, resets, color='blue')
-    fig.plot_sweeps(ax, sets, color='red')
-    fig.plot_sweeps(ax, electroform, color='black')
+
+    if (len(resets) == 0) and (len(resets) == 0) and (len(resets) == 0):
+        pristine_read = list(filter(lambda x: x['type'] == 'pristine read', all_info))
+        fig.plot_res(ax, pristine_read, color='black')
+        ax.set_title('pristine read')
+    else:
+        fig.plot_sweeps(ax, resets, color='blue')
+        fig.plot_sweeps(ax, sets, color='red')
+        fig.plot_sweeps(ax, electroform, color='black')
+        ax.set_title('I-V')
 
     return fig
+
+
 
 
 
@@ -76,10 +88,10 @@ class MyFigure:
             legend.append(run)
 
             if step_graph:
-                ax.plot(df[settings.resistance_collumn], color=color, label=label)
+                ax.plot(df[r_col], color=color, label=label)
                 ax.set_xlabel("step nr")
             else:
-                ax.plot(df['Time'], df[settings.resistance_collumn], color=color, label=label)
+                ax.plot(df['Time'], df[r_col], color=color, label=label)
                 ax.set_xlabel("Time (s)")
 
         if show_legend == True:
@@ -109,10 +121,10 @@ class MyFigure:
             legend.append(run)
 
             if step_graph:
-                ax.plot(df[settings.I_sweep_column], color=color, label=label)
+                ax.plot(df[i_col], color=color, label=label)
                 ax.set_xlabel("step nr")
             else:
-                ax.plot(df['Time'], df[settings.I_sweep_column], color=color, label=label)
+                ax.plot(df['Time'], df[i_col], color=color, label=label)
                 ax.set_xlabel("Time (s)")
 
         if show_legend == True:
@@ -141,7 +153,7 @@ class MyFigure:
             df = i['data']
             run = i['nr']
             auto_legend.append(run)
-            ax.plot(df[settings.V_sweep_column], abs(df[settings.I_sweep_column]), color=color, label=label)
+            ax.plot(df[v_col], abs(df[i_col]), color=color, label=label)
 
         if show_legend == True:
             ax.legend(auto_legend)

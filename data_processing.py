@@ -126,7 +126,6 @@ def get_all_info(folder_path, save=False):
         df_params_filtered = df_params[df_params["Parameter"].isin(param_list)]
         df_params_filtered.set_index('Parameter', inplace=True)
 
-
         time_data = df_params_filtered.loc['Last Executed']['Value 1']
         time_data = datetime.strptime(time_data, "%m/%d/%Y %H:%M:%S")
 

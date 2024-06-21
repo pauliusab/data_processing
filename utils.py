@@ -62,7 +62,6 @@ def get_figures_info(folder_path, name=None, print_info=True):
     if name != None:
         if '_datafile.pickle' not in name:
             all_save_files = list(filter(lambda x: x == (name + '_datafile.pickle'), all_save_files))
-            print(all_save_files)
         else:
             print('\n')
             print('Enter the figure name without "_datafile.pickle"')
@@ -82,3 +81,25 @@ def get_figures_info(folder_path, name=None, print_info=True):
         all_info.append({'figure': figure_name, 'graphs': axs_info})
 
     return all_info
+
+
+def get_run_parameters(all_info, run_type, run_nr, print_info=True):
+    run = list(filter(lambda x: x['type']==run_type and x['nr']==run_nr, all_info))
+    if len(run) != 0:
+        if print_info == True:
+            print('\n')
+            print('Parameters for ' + run_type + ' ' + str(run_nr) + ':')
+            print(run[0]['parameters'])
+        return run[0]['parameters']
+    else:
+        print('run could not be found')
+        return None
+
+
+def get_run_data(all_info, run_type, run_nr):
+    run = list(filter(lambda x: x['type']==run_type and x['nr']==run_nr, all_info))
+    if len(run) != 0:
+        return run[0]['data']
+    else:
+        print('run could not be found')
+        return None

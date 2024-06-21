@@ -2,11 +2,18 @@ from plotting_utils import MyFigure, auto_plot_IV
 import matplotlib.pyplot as plt
 
 
-def plot_info(all_info, show=True):
+def plot_info(all_info, auto=False, show=True):
+
+    
+    if auto == True:
+        # function to automatically generate all runs I-V for the device
+        fig = auto_plot_IV(all_info)
+        if show == True:
+            plt.show()
+        return([fig])
 
     # list of figures to be returned to the main script
     figures = []
-
 
 
     # sort all info into seperate info arrays by test type
@@ -24,12 +31,6 @@ def plot_info(all_info, show=True):
     resets = list(filter(lambda x: x['nr'] not in [55], resets))
 
 
-
-
-
-    # function to automatically generate all runs I-V for the device
-    fig = auto_plot_IV(all_info)
-    figures.append(fig)
     
 
     # alternative way to manually plot all runs I-V:
@@ -50,12 +51,14 @@ def plot_info(all_info, show=True):
 
     fig = MyFigure(2, title='reset sequence 1')
     ax = fig.axs
+    ax[0].set_title('I-V')
     fig.plot_sweeps(ax[0], [electroform[-1]], color='grey', label='previous set')
     fig.plot_sweeps(ax[0], reset_seq1)
     fig.plot_sweeps(ax[0], set1, color='black', label='subsequent_set')
     # to show legend:
     ax[0].legend()
     
+    ax[1].set_title('DC read')
     fig.plot_res(ax[1], read1, label='set resistance')
     fig.plot_res(ax[1], read2, label='reset resistance')
     ax[1].legend()
