@@ -7,6 +7,13 @@ import pickle
 import shutil
 import settings
 
+r_col = settings.resistance_column
+i_sw_col = settings.I_sweep_column
+v_sw_col = settings.V_sweep_column
+i_r_col = settings.I_read_column
+v_r_col = settings.V_read_column
+t_col = 'Time'
+
 
 home_path = os.path.dirname(__file__)
 
@@ -25,11 +32,13 @@ def update_folders(destinations):
             except FileExistsError:
                 pass
 
-
-            info = get_all_info(dest)
-            with open(dest + '\\Pickles\\info_file.pickle', 'wb') as f:
-                pickle.dump(info, f, protocol=pickle.HIGHEST_PROTOCOL)
-
+            try:
+                info = get_all_info(dest)
+                with open(dest + '\\Pickles\\info_file.pickle', 'wb') as f:
+                    pickle.dump(info, f, protocol=pickle.HIGHEST_PROTOCOL)
+            except FileNotFoundError:
+                print('passing')
+                pass
 
 def sort_dump():
     dump_dir = home_path + '\Dump'
@@ -83,7 +92,7 @@ def get_all_info(folder_path, save=False):
     all_info = []
 
     for filename in all_files:
-
+        print(filename)
         # get run name
         run_type = ""
         if "form" in filename:
@@ -118,9 +127,24 @@ def get_all_info(folder_path, save=False):
         run_nr = int(run_nr[3:])
 
 
-        df_data = pd.read_excel(dir + '\\' + filename, sheet_name="Sheet1", dtype=float)
 
-        df_params = pd.read_excel(dir + '\\' + filename, sheet_name="Sheet3")
+        xl = pd.ExcelFile(dir + '\\' + filename)
+        sheet_names = xl.sheet_names
+        first_sheet = sheet_names[0]
+        last_sheet = sheet_names[-1]
+
+        df = pd.read_excel(dir + '\\' + filename, sheet_name=first_sheet)
+
+        # Change column B and C's values to integers
+        # if run_type == 'form' or run_type == 'set' or run_type == 'reset':
+        #     df_data = df.astype({i_sw_col: float, v_sw_col: float, r_col: float, t_col: float})
+        # else:
+        #     df_data = df.astype({i_r_col: float, v_r_col: float, r_col: float, t_col: float})
+
+        df_data = df.apply(pd.to_numeric, errors='ignore')
+
+
+        df_params = pd.read_excel(dir + '\\' + filename, sheet_name=last_sheet)
         df_params.rename({"Unnamed: 0": "Parameter", "Unnamed: 1": "Value 1", "Unnamed: 2": "Value 2"}, axis="columns", inplace=True)
         param_list = settings.parameter_list
         df_params_filtered = df_params[df_params["Parameter"].isin(param_list)]
@@ -130,7 +154,7 @@ def get_all_info(folder_path, save=False):
         time_data = datetime.strptime(time_data, "%m/%d/%Y %H:%M:%S")
 
 
-        if "read" not in filename:
+        if run_type == 'form' or run_type == 'set' or run_type == 'reset':
             # drop first and last items (if sweep starts and ends with 0v)
             if df_data.iloc[0][settings.V_sweep_column] == 0:
                 df_data.drop(index=[0], inplace=True)
@@ -150,3 +174,22 @@ def get_all_info(folder_path, save=False):
                     pickle.dump(all_info, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     return all_info
+
+
+def refresh_dfolders():
+    all_folders = os.listdir(home_path + '\\Data')
+
+    for sample in all_folders:
+        print(sample)
+        devices = os.listdir(home_path + '\\Data\\' + sample)
+        for d in devices:
+            print(d)
+            dir = home_path + '\\Data\\' + sample + '\\' + d
+            update_folders([dir])
+            
+            
+            
+            
+        
+
+#refresh_dfolders()

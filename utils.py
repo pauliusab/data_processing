@@ -42,6 +42,7 @@ def print_chrono(all_info):
     print(chrono_list)
 
 
+
 def save_figures_info(folder_path, figures):
     for figure in figures:
         figname = figure.fig.get_suptitle()
