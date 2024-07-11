@@ -1,71 +1,82 @@
-from plotting_utils import MyFigure, auto_plot_IV
+from plotting_utils import MyFigure, auto_plot_IV, auto_plot_cycles
 import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib as mpl
 
 
-def plot_info(all_info, auto=False, show=True):
-
+def autoplot(all_info, show=True, g_o=False, savefig=False):
+    # function to automatically generate all runs I-V for the device
+    fig = auto_plot_IV(all_info)
+    figures = auto_plot_cycles(all_info)
     
-    if auto == True:
-        # function to automatically generate all runs I-V for the device
-        fig = auto_plot_IV(all_info)
-        if show == True:
-            plt.show()
-        return([fig])
+    all_figs = [fig]
+    all_figs.extend(figures)
+
+    if g_o == True:
+        for figure in all_figs:
+            ax = figure.axs
+            x = np.linspace(ax.get_xlim()[0], ax.get_xlim()[1], 1000)
+            y = abs(x * 7.748 * (10**(-5)))
+            ax.plot(x, y,'-.', color='magenta', label='G_o')
+            ax.legend()
+    if show == True:
+        plt.show()
+
+    if savefig == True:
+        for figure in all_figs:
+            figure.fig.savefig(mpl.rcParams["savefig.directory"] + '\\' + figure.fig.get_suptitle())
+
+    return all_figs
+
+
+def plot_info(all_info, show=True, g_o=False, savefig=False):
 
     # list of figures to be returned to the main script
     figures = []
 
 
     # sort all info into seperate info arrays by test type
-    resets = list(filter(lambda x: x['type'] == 'reset', all_info))
-    electroform = list(filter(lambda x: x['type'] == 'form', all_info))
-    sets = list(filter(lambda x: x['type'] == 'set', all_info))
-    reads = list(filter(lambda x: x['type'] == 'read', all_info))
+    pristine_reads = []
+    electroform = []
+    resets = []
+    sets = []
+    reads = []
+    for i in all_info:
+        if i['type'] == 'pristine read':
+            pristine_reads.append(i)
+        elif i['type'] == 'form':
+            electroform.append(i)
+        elif i['type'] == 'reset':
+            resets.append(i)  
+        elif i['type'] == 'set':
+            sets.append(i)  
+        elif i['type'] == 'read':
+            reads.append(i)
     
-    # sort reads by their run number
-    reads = sorted(reads, key=lambda x: int(x['nr']))
-
-
-    # remove unwanted elements
-    sets = list(filter(lambda x: x['nr'] not in [57], sets))
-    resets = list(filter(lambda x: x['nr'] not in [55], resets))
-
-
     
-
-    # alternative way to manually plot all runs I-V:
+    # # alternative way to manually plot all runs I-V:
     fig = MyFigure(1, title='I-V')
     ax = fig.axs
-    fig.plot_sweeps(ax, resets, color='blue')
-    fig.plot_sweeps(ax, sets, color='red')
-    fig.plot_sweeps(ax, electroform, color='black')
-    figures.append(fig)
+    fig.plot_sweeps(ax, resets, color='blue', label='resets')
+    fig.plot_sweeps(ax, sets, color='red', label='sets')
+    fig.plot_sweeps(ax, electroform, color='black', label='electroform')
+    ax.set_title('I-V')
+    ax.legend()
+    figures.append(figure)
 
 
 
-    # example of reset sequence plot
-    reset_seq1 = list(filter(lambda x: x['nr'] <= 45, resets))
-    set1 = list(filter(lambda x: x['nr'] == 1, sets))       # alternatively, if the sets list is sorted, write: set1 = [sets[0]]
-    read1 = list(filter(lambda x: x['nr'] == 1, reads))
-    read2 = list(filter(lambda x: x['nr'] == 4, reads))
+    if g_o == True:
+        for figure in figures:
+            ax = figure.axs
+            x = np.linspace(ax.get_xlim()[0], ax.get_xlim()[1], 1000)
+            y = abs(x * 7.748 * (10**(-5)))
+            ax.plot(x, y,'-.', color='magenta', label='G_o')
+            ax.legend()
 
-    fig = MyFigure(2, title='reset sequence 1')
-    ax = fig.axs
-    ax[0].set_title('I-V')
-    fig.plot_sweeps(ax[0], [electroform[-1]], color='grey', label='previous set')
-    fig.plot_sweeps(ax[0], reset_seq1)
-    fig.plot_sweeps(ax[0], set1, color='black', label='subsequent_set')
-    # to show legend:
-    ax[0].legend()
-    
-    ax[1].set_title('DC read')
-    fig.plot_res(ax[1], read1, label='set resistance')
-    fig.plot_res(ax[1], read2, label='reset resistance')
-    ax[1].legend()
-    figures.append(fig)
-
-
-
+    if savefig == True:
+        for figure in figures:
+            figure.fig.savefig(mpl.rcParams["savefig.directory"] + '\\' + figure.fig.get_suptitle())
 
     # leave these in
     if show == True:
